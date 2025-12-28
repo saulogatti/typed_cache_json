@@ -419,6 +419,338 @@ void main() {
       expect(await backend.read<Map<String, dynamic>>('key1'), isNotNull);
       expect(await backend.read<Map<String, dynamic>>('key2'), isNotNull);
     });
+
+    test('update entry overwrites previous version', () async {
+      final entry1 = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': 'v1'},
+        createdAtEpochMs: 1000,
+        expiresAtEpochMs: null,
+        tags: {'tag1'},
+      );
+
+      await backend.write(entry1);
+
+      final entry2 = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': 'v2'},
+        createdAtEpochMs: 2000,
+        expiresAtEpochMs: null,
+        tags: {'tag2'},
+      );
+
+      await backend.write(entry2);
+
+      final read = await backend.read<Map<String, dynamic>>('key1');
+      expect(read!.payload, {'data': 'v2'});
+      expect(read.createdAtEpochMs, 2000);
+      expect(read.tags, {'tag2'});
+    });
+
+    test('delete non-existent key is no-op', () async {
+      await backend.delete('non_existent');
+      // Should not throw or error
+      expect(await backend.read<Map<String, dynamic>>('non_existent'), isNull);
+    });
+
+    test('keysByTag returns empty set for non-existent tag', () async {
+      final keys = await backend.keysByTag('non_existent_tag');
+      expect(keys, isEmpty);
+    });
+
+    test('deleteTag on non-existent tag is no-op', () async {
+      await backend.deleteTag('non_existent_tag');
+      // Should not throw
+      expect(await backend.keysByTag('non_existent_tag'), isEmpty);
+    });
+
+    test('multiple tags on same entry', () async {
+      final entry = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': '1'},
+        createdAtEpochMs: 1000,
+        expiresAtEpochMs: null,
+        tags: {'tag1', 'tag2', 'tag3'},
+      );
+
+      await backend.write(entry);
+
+      expect(await backend.keysByTag('tag1'), ['key1']);
+      expect(await backend.keysByTag('tag2'), ['key1']);
+      expect(await backend.keysByTag('tag3'), ['key1']);
+    });
+
+    test('purgeExpired with no expired entries', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      final entry = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': '1'},
+        createdAtEpochMs: now,
+        expiresAtEpochMs: now + 10000,
+        tags: const {},
+      );
+
+      await backend.write(entry);
+      final removed = await backend.purgeExpired(now);
+
+      expect(removed, 0);
+      expect(await backend.read<Map<String, dynamic>>('key1'), isNotNull);
+    });
+
+    test('file with no directory creates it', () async {
+      final tempDir = await Directory.systemTemp.createTemp();
+      final newDir = Directory('${tempDir.path}/subdir/cache');
+      final cacheFile = File('${newDir.path}/cache.json');
+      final newBackend = JsonFileCacheBackend(file: cacheFile);
+
+      final entry = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': '1'},
+        createdAtEpochMs: 1000,
+        expiresAtEpochMs: null,
+        tags: const {},
+      );
+
+      await newBackend.write(entry);
+      expect(await cacheFile.exists(), isTrue);
+      expect(await newDir.exists(), isTrue);
+
+      await tempDir.delete(recursive: true);
+    });
+
+    test('clear on empty cache is no-op', () async {
+      await backend.clear();
+      expect(await backend.read<Map<String, dynamic>>('any_key'), isNull);
+    });
+
+    test('entry with null expiresAt never expires', () async {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final futureTime = now + (100 * 365 * 24 * 60 * 60 * 1000); // 100 years from now
+
+      final entry = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': '1'},
+        createdAtEpochMs: now,
+        expiresAtEpochMs: null,
+        tags: const {},
+      );
+
+      await backend.write(entry);
+      final removed = await backend.purgeExpired(futureTime);
+
+      expect(removed, 0);
+      expect(await backend.read<Map<String, dynamic>>('key1'), isNotNull);
+    });
+
+    test('removing entry also removes it from tag index', () async {
+      final entry = CacheEntry<Map<String, dynamic>>(
+        key: 'key1',
+        typeId: 'test',
+        payload: {'data': '1'},
+        createdAtEpochMs: 1000,
+        expiresAtEpochMs: null,
+        tags: {'session'},
+      );
+
+      await backend.write(entry);
+      expect(await backend.keysByTag('session'), ['key1']);
+
+      await backend.delete('key1');
+      expect(await backend.keysByTag('session'), isEmpty);
+    });
+
+    test('large payload is handled correctly', () async {
+      final largeData = {
+        'data': 'x' * 10000,
+        'nested': {
+          'deep': {'value': List<int>.generate(500, (i) => i % 5)},
+        },
+      };
+
+      final entry = CacheEntry<Map<String, dynamic>>(
+        key: 'large_key',
+        typeId: 'test',
+        payload: largeData,
+        createdAtEpochMs: 1000,
+        expiresAtEpochMs: null,
+        tags: const {},
+      );
+
+      await backend.write(entry);
+      final read = await backend.read<Map<String, dynamic>>('large_key');
+
+      expect(read, isNotNull);
+      expect(read!.payload, largeData);
+    });
+  });
+
+  group('JsonCacheFile Serialization Edge Cases', () {
+    test('handles empty string values in payload', () {
+      final cache = JsonCacheFile<Map<String, dynamic>>(
+        schemaVersion: 1,
+        entries: {
+          'key1': CacheEntry(
+            key: 'key1',
+            typeId: 'test',
+            payload: {'empty': '', 'data': 'value'},
+            createdAtEpochMs: 1000,
+            expiresAtEpochMs: null,
+            tags: const {},
+          ),
+        },
+        tagIndex: {},
+      );
+
+      final json = cache.toJson();
+      final deserialized = JsonCacheFile.fromJson(json);
+
+      expect(deserialized.entries['key1']?.payload, {'empty': '', 'data': 'value'});
+    });
+
+    test('handles null values in nested structures', () {
+      final cache = JsonCacheFile<Map<String, dynamic>>(
+        schemaVersion: 1,
+        entries: {
+          'key1': CacheEntry(
+            key: 'key1',
+            typeId: 'test',
+            payload: {
+              'nested': {
+                'nullable': null,
+                'list': [1, null, 3],
+              },
+            },
+            createdAtEpochMs: 1000,
+            expiresAtEpochMs: null,
+            tags: const {},
+          ),
+        },
+        tagIndex: {},
+      );
+
+      final json = cache.toJson();
+      final deserialized = JsonCacheFile.fromJson(json);
+
+      expect(deserialized.entries['key1']?.payload['nested'], isNotNull);
+    });
+
+    test('handles numeric types in payload', () {
+      final cache = JsonCacheFile<Map<String, dynamic>>(
+        schemaVersion: 1,
+        entries: {
+          'key1': CacheEntry(
+            key: 'key1',
+            typeId: 'test',
+            payload: {'int': 42, 'double': 3.14, 'negative': -100, 'zero': 0},
+            createdAtEpochMs: 1000,
+            expiresAtEpochMs: null,
+            tags: const {},
+          ),
+        },
+        tagIndex: {},
+      );
+
+      final json = cache.toJson();
+      final deserialized = JsonCacheFile.fromJson(json);
+      final payload = deserialized.entries['key1']?.payload;
+
+      expect(payload!['int'], 42);
+      expect(payload['double'], 3.14);
+      expect(payload['negative'], -100);
+      expect(payload['zero'], 0);
+    });
+
+    test('handles boolean values in payload', () {
+      final cache = JsonCacheFile<Map<String, dynamic>>(
+        schemaVersion: 1,
+        entries: {
+          'key1': CacheEntry(
+            key: 'key1',
+            typeId: 'test',
+            payload: {'enabled': true, 'disabled': false},
+            createdAtEpochMs: 1000,
+            expiresAtEpochMs: null,
+            tags: const {},
+          ),
+        },
+        tagIndex: {},
+      );
+
+      final json = cache.toJson();
+      final deserialized = JsonCacheFile.fromJson(json);
+      final payload = deserialized.entries['key1']?.payload;
+
+      expect(payload!['enabled'], isTrue);
+      expect(payload['disabled'], isFalse);
+    });
+
+    test('handles special characters in keys and strings', () {
+      final cache = JsonCacheFile<Map<String, dynamic>>(
+        schemaVersion: 1,
+        entries: {
+          'key-with-special_chars.123': CacheEntry(
+            key: 'key-with-special_chars.123',
+            typeId: 'test',
+            payload: {'unicode': '你好世界', 'emoji': '🎉', 'special': 'test\nwith\ttabs'},
+            createdAtEpochMs: 1000,
+            expiresAtEpochMs: null,
+            tags: {'tag-with-dash', 'tag_with_underscore'},
+          ),
+        },
+        tagIndex: {
+          'tag-with-dash': {'key-with-special_chars.123'},
+          'tag_with_underscore': {'key-with-special_chars.123'},
+        },
+      );
+
+      final json = cache.toJson();
+      final deserialized = JsonCacheFile.fromJson(json);
+
+      expect(deserialized.entries.containsKey('key-with-special_chars.123'), isTrue);
+      expect(deserialized.entries['key-with-special_chars.123']?.payload['unicode'], '你好世界');
+      expect(deserialized.entries['key-with-special_chars.123']?.payload['emoji'], '🎉');
+    });
+
+    test('handles deeply nested structures', () {
+      final deeplyNested = {
+        'level1': {
+          'level2': {
+            'level3': {
+              'level4': {
+                'level5': {'value': 'deep'},
+              },
+            },
+          },
+        },
+      };
+
+      final cache = JsonCacheFile<Map<String, dynamic>>(
+        schemaVersion: 1,
+        entries: {
+          'deep_key': CacheEntry(
+            key: 'deep_key',
+            typeId: 'test',
+            payload: deeplyNested,
+            createdAtEpochMs: 1000,
+            expiresAtEpochMs: null,
+            tags: const {},
+          ),
+        },
+        tagIndex: {},
+      );
+
+      final json = cache.toJson();
+      final deserialized = JsonCacheFile.fromJson(json);
+
+      expect(deserialized.entries['deep_key']?.payload, deeplyNested);
+    });
   });
 }
 
