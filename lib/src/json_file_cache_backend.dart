@@ -117,24 +117,24 @@ final class JsonFileCacheBackend implements CacheBackend {
     }
   }
 
-  Future<JsonCacheFile<Map<String, dynamic>>> _load() async {
+  Future<JsonCacheFile<E>> _load<E>() async {
     try {
-      if (!await file.exists()) return JsonCacheFile.empty();
+      if (!await file.exists()) return JsonCacheFile.empty<E>();
 
       final text = await file.readAsString();
-      if (text.trim().isEmpty) return JsonCacheFile.empty();
+      if (text.trim().isEmpty) return JsonCacheFile.empty<E>();
 
       final decoded = jsonDecode(text);
-      if (decoded is! Map) return JsonCacheFile.empty();
+      if (decoded is! Map) return JsonCacheFile.empty<E>();
 
-      return JsonCacheFile.fromJson(Map<String, dynamic>.from(decoded));
+      return JsonCacheFile.fromJson<E>(Map<String, dynamic>.from(decoded));
     } catch (_) {
-      if (!enableRecovery) return JsonCacheFile.empty();
-      return _recoverOrEmpty();
+      if (!enableRecovery) return JsonCacheFile.empty<E>();
+      return _recoverOrEmpty<E>();
     }
   }
 
-  Future<JsonCacheFile<Map<String, dynamic>>> _recoverOrEmpty() async {
+  Future<JsonCacheFile<E>> _recoverOrEmpty<E>() async {
     final bak = File('${file.path}.bak');
     final tmp = File('${file.path}.tmp');
 
@@ -144,16 +144,16 @@ final class JsonFileCacheBackend implements CacheBackend {
         final text = await candidate.readAsString();
         final decoded = jsonDecode(text);
         if (decoded is Map) {
-          final db = JsonCacheFile.fromJson(Map<String, dynamic>.from(decoded));
+          final db = JsonCacheFile.fromJson<E>(Map<String, dynamic>.from(decoded));
           await _atomicWrite(file, jsonEncode(db.toJson()));
           return db;
         }
       } catch (_) {}
     }
-    return JsonCacheFile.empty();
+    return JsonCacheFile.empty<E>();
   }
 
-  void _removeKeyFromTags(JsonCacheFile db, String key, Set<String> tags) {
+  void _removeKeyFromTags<E>(JsonCacheFile<E> db, String key, Set<String> tags) {
     for (final tag in tags) {
       final set = db.tagIndex[tag];
       if (set == null) continue;
