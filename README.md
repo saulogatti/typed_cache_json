@@ -1,6 +1,6 @@
 # typed_cache_json
 
-[![Version](https://img.shields.io/badge/version-0.2.1-blue.svg)](https://github.com/saulogatti/typed_cache_json)
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/saulogatti/typed_cache_json)
 
 Um backend de cache baseado em JSON para o pacote `typed_cache`. Oferece uma solução simples, tipada e persistente para armazenamento de dados em um único arquivo JSON, ideal para aplicações Flutter e Dart que precisam de persistência leve.
 
