@@ -2,6 +2,7 @@ import 'dart:io' show FileSystemException;
 
 import 'package:typed_cache/typed_cache.dart' show TypedCache, createTypedCache, CacheLogger;
 import 'package:typed_cache_json/src/json_file_cache_backend.dart';
+import 'package:typed_cache_json/typed_cache_json.dart';
 
 export 'package:typed_cache/typed_cache.dart' show TypedCache, CacheLogger;
 
@@ -47,7 +48,7 @@ export 'package:typed_cache/typed_cache.dart' show TypedCache, CacheLogger;
 /// ## Throws
 ///
 /// May throw [FileSystemException] if unable to create the cache directory.
-Future<TypedCache> create({
+Future<TypedCache<String, Map<String, dynamic>>> create({
   required CacheLocation location,
   required String fileName,
   String? subdir,
@@ -61,7 +62,13 @@ Future<TypedCache> create({
     subdir: subdir,
     enableRecovery: enableRecovery,
   );
-  return createTypedCache(backend: backend, deleteCorruptedEntries: deleteCorruptedEntries, log: logger);
+
+  return createTypedCache<String, Map<String, dynamic>>(
+    backend: backend,
+    deleteCorruptedEntries: deleteCorruptedEntries,
+    log: logger,
+    defaultCodec: CacheJsonCodec(),
+  );
 }
 
 /// Defines the storage location for the cache file in Flutter applications.

@@ -256,6 +256,11 @@ final class JsonFileCacheBackend implements CacheBackend {
     final db = await _load<E>();
     return db.entries[key];
   });
+  @override
+  Future<List<CacheEntry<E>>> readAll<E>() async {
+    final db = await _load<E>();
+    return db.entries.values.toList();
+  }
 
   /// Writes or updates a cache entry.
   ///
@@ -529,7 +534,7 @@ final class JsonFileCacheBackend implements CacheBackend {
     bool enableRecovery = true,
   }) async {
     final f = await resolveCacheFile(location: location, fileName: fileName, subdir: subdir);
-
+    print('JsonFileCacheBackend: using file at ${f.path}');
     return JsonFileCacheBackend(file: f, enableRecovery: enableRecovery);
   }
 }
