@@ -534,7 +534,6 @@ final class JsonFileCacheBackend implements CacheBackend {
     bool enableRecovery = true,
   }) async {
     final f = await resolveCacheFile(location: location, fileName: fileName, subdir: subdir);
-    print('JsonFileCacheBackend: using file at ${f.path}');
     return JsonFileCacheBackend(file: f, enableRecovery: enableRecovery);
   }
 }
