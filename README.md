@@ -2,25 +2,25 @@
 
 [![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/saulogatti/typed_cache_json)
 
-Um backend de cache baseado em JSON para o pacote `typed_cache`. Oferece uma solução simples, tipada e persistente para armazenamento de dados em um único arquivo JSON, ideal para aplicações Flutter e Dart que precisam de persistência leve.
+A JSON-based cache backend for the `typed_cache` package. Provides a simple, type-safe, and persistent solution for storing data in a single JSON file, ideal for Flutter and Dart applications that need lightweight persistence.
 
-> **📚 Documentação Completa:** Todo o código está totalmente documentado com comentários DartDoc. Use o autocompletar da sua IDE ou gere a documentação com `dart doc` para explorar a API completa.
+> **📚 Complete Documentation:** The entire codebase is fully documented with DartDoc comments. Use your IDE's autocomplete or generate documentation with `dart doc` to explore the complete API.
 
-## Características
+## Features
 
-- **Cache Tipado:** Armazene e recupere objetos com segurança de tipos usando `CacheCodec`.
-- **Persistência JSON:** Todos os dados são salvos em um único arquivo JSON local.
-- **Escritas Atômicas:** Utiliza arquivos temporários (`.tmp`) e de backup (`.bak`) para evitar corrupção de dados durante a gravação.
-- **Recuperação Automática:** Tenta recuperar dados de backups caso o arquivo principal seja corrompido.
-- **Suporte a Expiração (TTL):** Defina tempo de vida para suas entradas de cache.
-- **Indexação por Tags:** Organize e remova entradas de cache em massa usando tags.
-- **Integração com Flutter:** Resolução fácil de caminhos (`ApplicationSupport`, `Documents`, `Temporary`) via `path_provider`.
-- **Thread-Safe:** Operações protegidas por mutex assíncrono, garantindo segurança em ambientes concorrentes.
-- **Documentação Completa:** API totalmente documentada com exemplos e explicações detalhadas.
+- **Type-Safe Caching:** Store and retrieve objects with type safety using `CacheCodec`.
+- **JSON Persistence:** All data is saved in a single local JSON file.
+- **Atomic Writes:** Uses temporary (`.tmp`) and backup (`.bak`) files to prevent data corruption during writes.
+- **Automatic Recovery:** Attempts to recover data from backups if the main file is corrupted.
+- **Expiration Support (TTL):** Set a time-to-live for your cache entries.
+- **Tag-Based Indexing:** Organize and bulk-remove cache entries using tags.
+- **Flutter Integration:** Easy path resolution (`ApplicationSupport`, `Documents`, `Temporary`) via `path_provider`.
+- **Thread-Safe:** Operations protected by an async mutex, ensuring safety in concurrent environments.
+- **Complete Documentation:** Fully documented API with examples and detailed explanations.
 
-## Começando
+## Getting Started
 
-Adicione a dependência ao seu `pubspec.yaml`:
+Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
@@ -29,63 +29,63 @@ dependencies:
       url: https://github.com/saulogatti/typed_cache_json.git
 ```
 
-## Uso
+## Usage
 
-### Configuração Básica (Flutter)
+### Basic Setup (Flutter)
 
-A forma mais fácil de começar no Flutter é usando a função `create`:
+The easiest way to get started with Flutter is using the `create` function:
 
 ```dart
 import 'package:typed_cache_json/typed_cache_json.dart';
 
 void main() async {
-  // Inicializa o cache apontando para a pasta de suporte da aplicação
+  // Initialize the cache pointing to the application support directory
   final cache = await create(
     location: CacheLocation.support,
     subdir: 'my_app_cache',
     fileName: 'cache.json',
   );
   
-  // Agora você pode usar o cache!
+  // Now you can use the cache!
 }
 ```
 
-#### Localizações Disponíveis
+#### Available Locations
 
-O enum `CacheLocation` define onde o arquivo de cache será armazenado:
+The `CacheLocation` enum defines where the cache file will be stored:
 
-- **`CacheLocation.support`** (Recomendado): Arquivos internos não expostos ao usuário
-- **`CacheLocation.temporary`**: Cache temporário; o SO pode limpar quando necessário
-- **`CacheLocation.documents`**: Documentos do usuário (evite para cache)
+- **`CacheLocation.support`** (Recommended): Internal application files not exposed to the user
+- **`CacheLocation.temporary`**: Temporary cache; the OS may clean it when needed
+- **`CacheLocation.documents`**: User documents (avoid for cache)
 
-### Configuração Avançada
+### Advanced Configuration
 
-Se você precisar de mais controle, pode criar o backend diretamente:
+If you need more control, you can create the backend directly:
 
 ```dart
 import 'package:typed_cache_json/typed_cache_json.dart';
 import 'package:typed_cache_json/src/json_file_cache_backend.dart';
 
 void main() async {
-  // Cria o backend com configurações personalizadas
+  // Create the backend with custom settings
   final backend = await JsonFileCacheBackend.fromLocation(
     location: CacheLocation.support,
     subdir: 'my_app_cache',
     fileName: 'cache.json',
-    enableRecovery: true, // Habilita recuperação automática (padrão: true)
+    enableRecovery: true, // Enable automatic recovery (default: true)
   );
 
-  // Cria o cache com o backend
+  // Create the cache with the backend
   final cache = createTypedCache(
     backend: backend,
-    deleteCorruptedEntries: true, // Remove entradas corrompidas automaticamente
+    deleteCorruptedEntries: true, // Automatically remove corrupted entries
   );
 }
 ```
 
-### Armazenando e Recuperando Dados
+### Storing and Retrieving Data
 
-Para usar o cache, você precisa definir um `CacheCodec` para o seu tipo de dado:
+To use the cache, you need to define a `CacheCodec` for your data type:
 
 ```dart
 import 'package:typed_cache/typed_cache.dart';
@@ -111,7 +111,7 @@ class UserCodec extends CacheCodec<User, Map<String, dynamic>> {
   }
 }
 
-// Usando o cache
+// Using the cache
 void main() async {
   final cache = await create(
     location: CacheLocation.support,
@@ -121,18 +121,18 @@ void main() async {
   final user = User('Saulo', 30);
   final codec = UserCodec();
 
-  // Salvar
+  // Save
   await cache.put('user_1', user, codec: codec);
 
-  // Recuperar
+  // Retrieve
   final cachedUser = await cache.get('user_1', codec: codec);
-  print('Nome: ${cachedUser?.name}, Idade: ${cachedUser?.age}');
+  print('Name: ${cachedUser?.name}, Age: ${cachedUser?.age}');
 }
 ```
 
-### Usando o Codec JSON Pré-definido
+### Using the Built-in JSON Codec
 
-Para dados simples em formato Map, você pode usar o `CacheJsonCodec` incluído:
+For simple data in Map format, you can use the included `CacheJsonCodec`:
 
 ```dart
 import 'package:typed_cache_json/typed_cache_json.dart';
@@ -145,19 +145,19 @@ void main() async {
   
   final codec = CacheJsonCodec();
   
-  // Salvar um Map diretamente
+  // Save a Map directly
   await cache.put('config', {'theme': 'dark', 'version': 2}, codec: codec);
   
-  // Recuperar
+  // Retrieve
   final config = await cache.get('config', codec: codec);
   print('Theme: ${config?['theme']}');
 }
 ```
 
-### Usando Tags e TTL
+### Using Tags and TTL
 
 ```dart
-// Salvar com expiração de 1 hora e tags
+// Save with 1-hour expiration and tags
 await cache.put(
   'session_data', 
   sessionData, 
@@ -166,36 +166,36 @@ await cache.put(
   tags: {'session', 'auth'},
 );
 
-// Invalidar tudo que tem a tag 'session'
+// Invalidate everything with the 'session' tag
 await cache.invalidateByTag('session');
 
-// Buscar todas as chaves com uma tag específica
+// Get all keys with a specific tag
 final sessionKeys = await cache.keysByTag('session');
-print('Chaves da sessão: $sessionKeys');
+print('Session keys: $sessionKeys');
 ```
 
-### Limpeza de Cache Expirado
+### Cleaning Expired Cache
 
-O cache não remove entradas expiradas automaticamente do disco (exceto quando você tenta ler uma chave expirada). Para limpar o arquivo:
+The cache does not automatically remove expired entries from disk (except when you try to read an expired key). To clean the file:
 
 ```dart
-// Remove todas as entradas expiradas do arquivo JSON
+// Remove all expired entries from the JSON file
 final count = await cache.purgeExpired();
-print('$count entradas removidas');
+print('$count entries removed');
 ```
 
-### Limpeza Completa
+### Complete Cache Clear
 
-Para remover todos os dados do cache:
+To remove all cache data:
 
 ```dart
-// Limpa todo o cache
+// Clear all cache
 await cache.clear();
 ```
 
-## Estrutura do Arquivo
+## File Structure
 
-O backend mantém um arquivo JSON com a seguinte estrutura:
+The backend maintains a JSON file with the following structure:
 
 ```json
 {
@@ -216,36 +216,36 @@ O backend mantém um arquivo JSON com a seguinte estrutura:
 }
 ```
 
-### Arquivos de Segurança
+### Safety Files
 
-Durante operações de escrita, o backend cria arquivos auxiliares:
+During write operations, the backend creates auxiliary files:
 
-- **`cache.json.tmp`**: Arquivo temporário usado durante a escrita
-- **`cache.json.bak`**: Backup do arquivo anterior, usado para recuperação em caso de corrupção
+- **`cache.json.tmp`**: Temporary file used during write operations
+- **`cache.json.bak`**: Backup of the previous file, used for recovery in case of corruption
 
-Esses arquivos são gerenciados automaticamente e garantem a integridade dos dados.
+These files are managed automatically and ensure data integrity.
 
-## Recuperação de Dados
+## Data Recovery
 
-O pacote inclui um sistema robusto de recuperação de dados:
+The package includes a robust data recovery system:
 
-1. Se o arquivo principal estiver corrompido, tenta carregar do `.bak`
-2. Se o `.bak` também estiver corrompido, tenta o `.tmp`
-3. Se nenhum funcionar, inicializa um cache vazio
+1. If the main file is corrupted, it attempts to load from `.bak`
+2. If the `.bak` is also corrupted, it tries the `.tmp` file
+3. If none work, it initializes an empty cache
 
-Você pode desabilitar a recuperação automática ao criar o backend:
+You can disable automatic recovery when creating the backend:
 
 ```dart
 final backend = await JsonFileCacheBackend.fromLocation(
   location: CacheLocation.support,
   fileName: 'cache.json',
-  enableRecovery: false, // Desabilita recuperação
+  enableRecovery: false, // Disable recovery
 );
 ```
 
 ## Logging
 
-Para debug e monitoramento, você pode ativar logs ao criar o cache:
+For debugging and monitoring, you can enable logs when creating the cache:
 
 ```dart
 final cache = await create(
@@ -255,157 +255,157 @@ final cache = await create(
 );
 ```
 
-## Arquitetura e Funcionamento Interno
+## Architecture and Internal Workings
 
-### Componentes Principais
+### Main Components
 
-O pacote é organizado em componentes especializados:
+The package is organized into specialized components:
 
 #### 1. **JsonFileCacheBackend**
-Backend principal que implementa `CacheBackend` do `typed_cache`. Responsável por:
-- Operações de leitura/escrita atômicas
-- Gerenciamento do ciclo de vida das entradas
-- Manutenção do índice de tags
-- Recuperação automática de falhas
+Main backend that implements `CacheBackend` from `typed_cache`. Responsible for:
+- Atomic read/write operations
+- Entry lifecycle management
+- Tag index maintenance
+- Automatic failure recovery
 
 #### 2. **AsyncMutex**
-Mutex assíncrono que serializa operações concorrentes. Garante que:
-- Operações de I/O não se sobreponham
-- Estado interno permaneça consistente
-- Erros em uma operação não bloqueiem as seguintes
+Async mutex that serializes concurrent operations. Ensures that:
+- I/O operations don't overlap
+- Internal state remains consistent
+- Errors in one operation don't block others
 
 #### 3. **JsonCacheFile**
-Modelo de dados que representa a estrutura do arquivo JSON em memória:
-- Armazena todas as entradas do cache
-- Mantém índice reverso de tags para buscas eficientes
-- Serializa/deserializa o arquivo JSON
+Data model that represents the JSON file structure in memory:
+- Stores all cache entries
+- Maintains reverse tag index for efficient searches
+- Serializes/deserializes the JSON file
 
 #### 4. **CacheJsonCodec**
-Codec pré-definido para dados JSON simples (`Map<String, dynamic>`):
-- Facilita armazenamento de configurações e dados estruturados
-- Sem necessidade de criar codecs personalizados para dados simples
+Pre-built codec for simple JSON data (`Map<String, dynamic>`):
+- Facilitates storage of configurations and structured data
+- No need to create custom codecs for simple data
 
-### Fluxo de Operações
+### Operation Flow
 
-#### Escrita (write)
+#### Write Operation
 ```
 TypedCache.put() 
   → JsonFileCacheBackend.write()
   → _mutex.synchronized()
-    → _load() (carrega arquivo)
-    → _upsertEntry() (atualiza entrada e índice de tags)
+    → _load() (load file)
+    → _upsertEntry() (update entry and tag index)
     → _save()
-      → _atomicWrite() (escreve .tmp → renomeia → backup .bak)
+      → _atomicWrite() (write .tmp → rename → backup .bak)
 ```
 
-#### Leitura (read)
+#### Read Operation
 ```
 TypedCache.get()
   → JsonFileCacheBackend.read()
   → _mutex.synchronized()
-    → _load() (carrega e faz cache em memória durante a operação)
-    → retorna entrada ou null
+    → _load() (load and cache in memory during operation)
+    → return entry or null
 ```
 
-#### Recuperação de Falhas
+#### Failure Recovery
 ```
-_load() falha
-  → _recoverOrEmpty() (se enableRecovery = true)
-    → tenta .bak
-    → tenta .tmp
-    → retorna vazio se todos falharem
+_load() fails
+  → _recoverOrEmpty() (if enableRecovery = true)
+    → try .bak
+    → try .tmp
+    → return empty if all fail
 ```
 
-### Garantias de Thread-Safety
+### Thread-Safety Guarantees
 
-Todas as operações públicas são protegidas pelo `AsyncMutex`, garantindo:
-- **Serialização:** Operações executam uma de cada vez, na ordem de submissão
-- **Consistência:** Estado do arquivo e índices sempre sincronizados
-- **Isolamento:** Falhas em uma operação não afetam outras
+All public operations are protected by `AsyncMutex`, ensuring:
+- **Serialization:** Operations execute one at a time, in submission order
+- **Consistency:** File and index state always synchronized
+- **Isolation:** Errors in one operation don't affect others
 
-### Garantias de Durabilidade
+### Durability Guarantees
 
-O protocolo de escrita atômica garante:
-- **Atomicidade:** Escrita completa ou nenhuma escrita (sem corrupção parcial)
-- **Backup Automático:** Versão anterior sempre preservada em `.bak`
-- **Recuperação:** Sistema tenta múltiplos caminhos antes de desistir
+The atomic write protocol ensures:
+- **Atomicity:** Complete write or no write (no partial corruption)
+- **Automatic Backup:** Previous version always preserved in `.bak`
+- **Recovery:** System tries multiple paths before giving up
 
-## Informações Adicionais
+## Additional Information
 
-### Compatibilidade
+### Compatibility
 
 - **Dart SDK**: ^3.10.4
-- **Flutter**: Compatível
-- **Plataformas**: iOS, Android, macOS, Windows, Linux
+- **Flutter**: Compatible
+- **Platforms**: iOS, Android, macOS, Windows, Linux
 
-### Documentação da API
+### API Documentation
 
-Todo o código deste pacote está completamente documentado com comentários DartDoc. A documentação inclui:
+All code in this package is fully documented with DartDoc comments. The documentation includes:
 
-- **Descrições Detalhadas:** Cada classe, método e propriedade possui uma descrição clara
-- **Exemplos de Uso:** Exemplos práticos para as principais funcionalidades
-- **Parâmetros e Retornos:** Documentação completa de todos os parâmetros e valores de retorno
-- **Exceções:** Informações sobre possíveis erros e como tratá-los
-- **Notas de Implementação:** Detalhes sobre o comportamento interno e garantias de thread-safety
+- **Detailed Descriptions:** Each class, method, and property has a clear description
+- **Usage Examples:** Practical examples for main features
+- **Parameters and Returns:** Complete documentation of all parameters and return values
+- **Exceptions:** Information about possible errors and how to handle them
+- **Implementation Notes:** Details about internal behavior and thread-safety guarantees
 
-#### Como Acessar a Documentação
+#### How to Access Documentation
 
-1. **Via IDE:** Use o autocompletar (Ctrl+Space / Cmd+Space) e hover sobre qualquer símbolo para ver a documentação inline
-2. **Gerar HTML:** Execute `dart doc` no diretório do projeto para gerar documentação HTML navegável
-3. **Leia o Código:** Os comentários DartDoc estão visíveis diretamente nos arquivos fonte
+1. **Via IDE:** Use autocomplete (Ctrl+Space / Cmd+Space) and hover over any symbol to see inline documentation
+2. **Generate HTML:** Run `dart doc` in the project directory to generate navigable HTML documentation
+3. **Read the Code:** DartDoc comments are visible directly in source files
 
-#### Principais Classes Documentadas
+#### Main Documented Classes
 
-- **`JsonFileCacheBackend`:** Backend principal com operações atômicas e recuperação automática
-- **`AsyncMutex`:** Implementação de mutex assíncrono para serialização de operações
-- **`CacheJsonCodec`:** Codec pré-definido para dados JSON simples
-- **`JsonCacheFile`:** Modelo interno do arquivo de cache
-- **`CacheLocation`:** Enum para escolha de localização do arquivo
+- **`JsonFileCacheBackend`:** Main backend with atomic operations and automatic recovery
+- **`AsyncMutex`:** Async mutex implementation for operation serialization
+- **`CacheJsonCodec`:** Pre-built codec for simple JSON data
+- **`JsonCacheFile`:** Internal cache file model
+- **`CacheLocation`:** Enum for choosing cache file location
 
-### Links Úteis
+### Useful Links
 
-- [typed_cache](https://github.com/saulogatti/typed_cache) - Pacote base para cache tipado
-- [Repositório](https://github.com/saulogatti/typed_cache_json)
+- [typed_cache](https://github.com/saulogatti/typed_cache) - Base caching package
+- [Repository](https://github.com/saulogatti/typed_cache_json)
 
-### Recursos Avançados
+### Advanced Resources
 
-Para mais detalhes sobre:
-- Criação de codecs complexos
-- Políticas de TTL personalizadas
-- Estratégias de invalidação
-- Otimizações de performance
+For more details about:
+- Creating complex codecs
+- Custom TTL policies
+- Invalidation strategies
+- Performance optimizations
 
-Consulte a [documentação do typed_cache](https://github.com/saulogatti/typed_cache).
+See the [typed_cache documentation](https://github.com/saulogatti/typed_cache).
 
-## Melhores Práticas
+## Best Practices
 
-### Escolha da Localização
+### Choosing Storage Location
 
-- **Use `CacheLocation.support`** para a maioria dos casos - é o local recomendado para cache
-- **Use `CacheLocation.temporary`** apenas para cache verdadeiramente descartável que pode ser limpo pelo SO
-- **Evite `CacheLocation.documents`** para cache - é para arquivos visíveis ao usuário
+- **Use `CacheLocation.support`** for most cases - it's the recommended location for cache
+- **Use `CacheLocation.temporary`** only for truly disposable cache that can be cleared by the OS
+- **Avoid `CacheLocation.documents`** for cache - it's for user-visible files
 
-### Gerenciamento de Tags
+### Tag Management
 
 ```dart
-// Organize entradas relacionadas com tags
+// Organize related entries with tags
 await cache.put('user_123', userData, codec: codec, tags: {'user', 'session'});
 await cache.put('config_123', configData, codec: codec, tags: {'config', 'session'});
 
-// Limpe tudo relacionado à sessão de uma vez
+// Clear everything related to session at once
 await cache.invalidateByTag('session');
 ```
 
-### Limpeza Periódica
+### Periodic Cleanup
 
 ```dart
-// Execute periodicamente para manter o arquivo otimizado
+// Run periodically to keep the file optimized
 Future<void> performCacheMaintenance() async {
   final removed = await cache.purgeExpired();
-  print('Removidas $removed entradas expiradas');
+  print('Removed $removed expired entries');
 }
 
-// Exemplo: executar ao iniciar o app
+// Example: run on app startup
 void main() async {
   final cache = await create(/*...*/);
   await performCacheMaintenance();
@@ -413,13 +413,13 @@ void main() async {
 }
 ```
 
-### Codecs Personalizados
+### Custom Codecs
 
 ```dart
-// Para objetos complexos, crie codecs específicos
+// For complex objects, create specific codecs
 class UserCodec extends CacheCodec<User, Map<String, dynamic>> {
   @override
-  String get typeId => 'user:v1'; // Inclua versão no typeId
+  String get typeId => 'user:v1'; // Include version in typeId
   
   @override
   User decode(Map<String, dynamic> data) {
@@ -433,61 +433,61 @@ class UserCodec extends CacheCodec<User, Map<String, dynamic>> {
 }
 ```
 
-### Tratamento de Erros
+### Error Handling
 
 ```dart
 try {
   final data = await cache.get('key', codec: codec);
   if (data == null) {
-    // Chave não existe ou expirou
+    // Key doesn't exist or has expired
     print('Cache miss');
   }
 } catch (e) {
-  // Erro de I/O ou corrupção
-  print('Erro ao acessar cache: $e');
-  // O cache tenta se recuperar automaticamente
+  // I/O error or corruption
+  print('Error accessing cache: $e');
+  // The cache attempts automatic recovery
 }
 ```
 
-## Solução de Problemas
+## Troubleshooting
 
-### Cache não persiste entre execuções
+### Cache doesn't persist between runs
 
-**Causa:** Possível uso de `CacheLocation.temporary` em dispositivo com pouco espaço.
-**Solução:** Use `CacheLocation.support` para dados que devem persistir.
+**Cause:** Possible use of `CacheLocation.temporary` on device with low space.
+**Solution:** Use `CacheLocation.support` for data that should persist.
 
-### Arquivo corrompido repetidamente
+### File gets corrupted repeatedly
 
-**Causa:** Possível falha durante escrita (ex: app terminado abruptamente).
-**Solução:** O sistema de recuperação automática deve resolver. Se persistir:
+**Cause:** Possible write failure (e.g., app terminated abruptly).
+**Solution:** The automatic recovery system should resolve it. If it persists:
 ```dart
-// Force uma limpeza completa
+// Force a complete cleanup
 await cache.clear();
 ```
 
-### Performance lenta com muitas entradas
+### Slow performance with many entries
 
-**Causa:** Arquivo JSON muito grande sendo carregado/gravado a cada operação.
-**Soluções:**
-- Execute `purgeExpired()` periodicamente
-- Use TTL para limitar tempo de vida das entradas
-- Considere dividir em múltiplos arquivos de cache por contexto
-- Use tags para organizar e limpar grupos de entradas
+**Cause:** Large JSON file being loaded/saved on every operation.
+**Solutions:**
+- Run `purgeExpired()` periodically
+- Use TTL to limit entry lifespan
+- Consider splitting into multiple cache files by context
+- Use tags to organize and clean groups of entries
 
-### Erro "Permission Denied"
+### "Permission Denied" error
 
-**Causa:** Tentativa de acessar diretório sem permissões apropriadas.
-**Solução:** Use `CacheLocation.support` que sempre tem permissões adequadas.
+**Cause:** Attempting to access directory without appropriate permissions.
+**Solution:** Use `CacheLocation.support` which always has proper permissions.
 
-### Dados desaparecem no iOS
+### Data disappears on iOS
 
-**Causa:** Uso de `CacheLocation.temporary` - o iOS limpa agressivamente esta pasta.
-**Solução:** Use `CacheLocation.support` para dados que devem persistir.
+**Cause:** Use of `CacheLocation.temporary` - iOS aggressively clears this folder.
+**Solution:** Use `CacheLocation.support` for data that should persist.
 
-## Contribuindo
+## Contributing
 
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues ou pull requests.
+Contributions are welcome! Feel free to open issues or pull requests.
 
-## Licença
+## License
 
-Este projeto é de código aberto. Verifique o arquivo LICENSE para mais detalhes.
+This project is open source. Check the LICENSE file for more details.
