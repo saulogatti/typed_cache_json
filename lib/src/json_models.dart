@@ -1,39 +1,32 @@
 import 'package:typed_cache/typed_cache.dart';
 
-final class JsonCacheFile {
+final class JsonCacheFile<E> {
   static const int currentSchemaVersion = 1;
 
   final int schemaVersion;
-  final Map<String, CacheEntry> entries;
+  final Map<String, CacheEntry<E>> entries;
   final Map<String, Set<String>> tagIndex;
-  JsonCacheFile({
-    required this.schemaVersion,
-    required this.entries,
-    required this.tagIndex,
-  });
+  JsonCacheFile({required this.schemaVersion, required this.entries, required this.tagIndex});
 
-  Map<String, Object?> toJson() => <String, Object?>{
+  Map<String, dynamic> toJson() => <String, dynamic>{
     'schemaVersion': schemaVersion,
     'entries': entries.map((k, v) => MapEntry(k, entryToJson(v))),
     'tagIndex': tagIndex.map((tag, keys) => MapEntry(tag, keys.toList())),
   };
 
-  static JsonCacheFile empty() => JsonCacheFile(
-    schemaVersion: currentSchemaVersion,
-    entries: {},
-    tagIndex: {},
-  );
+  static JsonCacheFile<Map<String, dynamic>> empty() =>
+      JsonCacheFile<Map<String, dynamic>>(schemaVersion: currentSchemaVersion, entries: {}, tagIndex: {});
 
-  static CacheEntry entryFromJson(Map<String, Object?> json) => CacheEntry(
+  static CacheEntry<E> entryFromJson<E>(Map<String, dynamic> json) => CacheEntry<E>(
     key: json['key'] as String,
     typeId: json['typeId'] as String,
-    payload: json['payload'] as Object,
+    payload: json['payload'] as E,
     createdAtEpochMs: (json['createdAt'] as num).toInt(),
     expiresAtEpochMs: (json['expiresAt'] as num?)?.toInt(),
     tags: ((json['tags'] as List?) ?? const []).map((e) => e as String).toSet(),
   );
 
-  static Map<String, Object?> entryToJson(CacheEntry e) => <String, Object?>{
+  static Map<String, dynamic> entryToJson(CacheEntry e) => <String, dynamic>{
     'key': e.key,
     'typeId': e.typeId,
     'payload': e.payload,
@@ -42,15 +35,13 @@ final class JsonCacheFile {
     'tags': e.tags.toList(growable: true),
   };
 
-  static JsonCacheFile fromJson(Map<String, Object?> json) {
+  static JsonCacheFile<Map<String, dynamic>> fromJson(Map<String, dynamic> json) {
     final schema = (json['schemaVersion'] as num?)?.toInt() ?? 1;
 
     final entriesRaw = (json['entries'] as Map?) ?? const {};
-    final entries = <String, CacheEntry>{};
+    final entries = <String, CacheEntry<Map<String, dynamic>>>{};
     for (final MapEntry(:key, :value) in entriesRaw.entries) {
-      entries[key as String] = JsonCacheFile.entryFromJson(
-        Map<String, Object?>.from(value as Map),
-      );
+      entries[key as String] = JsonCacheFile.entryFromJson(Map<String, dynamic>.from(value as Map));
     }
 
     final tagRaw = (json['tagIndex'] as Map?) ?? const {};
@@ -59,10 +50,6 @@ final class JsonCacheFile {
       tagIndex[key as String] = (value as List).map((e) => e as String).toSet();
     }
 
-    return JsonCacheFile(
-      schemaVersion: schema,
-      entries: entries,
-      tagIndex: tagIndex,
-    );
+    return JsonCacheFile(schemaVersion: schema, entries: entries, tagIndex: tagIndex);
   }
 }

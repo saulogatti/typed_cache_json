@@ -1,10 +1,9 @@
 import 'package:typed_cache/typed_cache.dart';
 
-abstract class JsonCacheCodec<T extends Object>
-    implements CacheCodec<Map<String, Object?>, T> {
+abstract class JsonCacheCodec<T extends Object> implements CacheCodec<Map<String, dynamic>, T> {
   @override
-  T decode(Map<String, Object?> data);
+  T decode(Map<String, dynamic> data);
 
   @override
-  Map<String, Object?> encode(T value);
+  Map<String, dynamic> encode(T value);
 }

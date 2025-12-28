@@ -43,7 +43,7 @@ final class JsonFileCacheBackend implements CacheBackend {
       final entry = db.entries[k];
       if (entry == null) continue;
       final newTags = Set<String>.from(entry.tags)..remove(tag);
-      db.entries[k] = entry.copyWith(tags: newTags);
+      db.entries[k] = entry.copyWith(tags: newTags) as CacheEntry<Map<String, dynamic>>;
     }
 
     await _save(db);
@@ -74,13 +74,13 @@ final class JsonFileCacheBackend implements CacheBackend {
   });
 
   @override
-  Future<CacheEntry?> read(String key) => _mutex.synchronized(() async {
+  Future<CacheEntry<E>?> read<E>(String key) => _mutex.synchronized(() async {
     final db = await _load();
-    return db.entries[key];
+    return db.entries[key] as CacheEntry<E>?;
   });
 
   @override
-  Future<void> write(CacheEntry entry) => _mutex.synchronized(() async {
+  Future<void> write<E>(CacheEntry<E> entry) => _mutex.synchronized(() async {
     final db = await _load();
     _upsertEntry(db, entry);
     await _save(db);
@@ -117,7 +117,7 @@ final class JsonFileCacheBackend implements CacheBackend {
     }
   }
 
-  Future<JsonCacheFile> _load() async {
+  Future<JsonCacheFile<Map<String, dynamic>>> _load() async {
     try {
       if (!await file.exists()) return JsonCacheFile.empty();
 
@@ -127,14 +127,14 @@ final class JsonFileCacheBackend implements CacheBackend {
       final decoded = jsonDecode(text);
       if (decoded is! Map) return JsonCacheFile.empty();
 
-      return JsonCacheFile.fromJson(Map<String, Object?>.from(decoded));
+      return JsonCacheFile.fromJson(Map<String, dynamic>.from(decoded));
     } catch (_) {
       if (!enableRecovery) return JsonCacheFile.empty();
       return _recoverOrEmpty();
     }
   }
 
-  Future<JsonCacheFile> _recoverOrEmpty() async {
+  Future<JsonCacheFile<Map<String, dynamic>>> _recoverOrEmpty() async {
     final bak = File('${file.path}.bak');
     final tmp = File('${file.path}.tmp');
 
@@ -144,7 +144,7 @@ final class JsonFileCacheBackend implements CacheBackend {
         final text = await candidate.readAsString();
         final decoded = jsonDecode(text);
         if (decoded is Map) {
-          final db = JsonCacheFile.fromJson(Map<String, Object?>.from(decoded));
+          final db = JsonCacheFile.fromJson(Map<String, dynamic>.from(decoded));
           await _atomicWrite(file, jsonEncode(db.toJson()));
           return db;
         }
@@ -187,11 +187,7 @@ final class JsonFileCacheBackend implements CacheBackend {
     String? subdir, // ex: 'typed_cache'
     bool enableRecovery = true,
   }) async {
-    final f = await resolveCacheFile(
-      location: location,
-      fileName: fileName,
-      subdir: subdir,
-    );
+    final f = await resolveCacheFile(location: location, fileName: fileName, subdir: subdir);
 
     return JsonFileCacheBackend(file: f, enableRecovery: enableRecovery);
   }
