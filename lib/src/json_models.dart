@@ -10,7 +10,7 @@ final class JsonCacheFile<E> {
 
   Map<String, dynamic> toJson() => <String, dynamic>{
     'schemaVersion': schemaVersion,
-    'entries': entries.map((k, v) => MapEntry(k, entryToJson(v))),
+    'entries': entries.map((k, v) => MapEntry(k, entryToJson<E>(v))),
     'tagIndex': tagIndex.map((tag, keys) => MapEntry(tag, keys.toList())),
   };
 
@@ -26,7 +26,7 @@ final class JsonCacheFile<E> {
     tags: ((json['tags'] as List?) ?? const []).map((e) => e as String).toSet(),
   );
 
-  static Map<String, dynamic> entryToJson(CacheEntry e) => <String, dynamic>{
+  static Map<String, dynamic> entryToJson<E>(CacheEntry<E> e) => <String, dynamic>{
     'key': e.key,
     'typeId': e.typeId,
     'payload': e.payload,
