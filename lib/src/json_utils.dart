@@ -1,3 +1,5 @@
+import 'dart:io' show FileSystemException;
+
 import 'package:typed_cache/typed_cache.dart' show TypedCache, createTypedCache, CacheLogger;
 import 'package:typed_cache_json/src/json_file_cache_backend.dart';
 

@@ -92,9 +92,9 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<void> clear() => _mutex.synchronized(() async {
-        final db = JsonCacheFile.empty();
-        await _save(db);
-      });
+    final db = JsonCacheFile.empty();
+    await _save(db);
+  });
 
   /// Deletes a single entry from the cache by key.
   ///
@@ -117,13 +117,13 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<void> delete(String key) => _mutex.synchronized(() async {
-        final db = await _load();
-        final removed = db.entries.remove(key);
-        if (removed != null) {
-          _removeKeyFromTags(db, key, removed.tags);
-          await _save(db);
-        }
-      });
+    final db = await _load();
+    final removed = db.entries.remove(key);
+    if (removed != null) {
+      _removeKeyFromTags(db, key, removed.tags);
+      await _save(db);
+    }
+  });
 
   /// Deletes a tag and removes it from all entries.
   ///
@@ -147,19 +147,19 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<void> deleteTag(String tag) => _mutex.synchronized(() async {
-        final db = await _load();
-        final keys = db.tagIndex.remove(tag);
-        if (keys == null || keys.isEmpty) return;
+    final db = await _load();
+    final keys = db.tagIndex.remove(tag);
+    if (keys == null || keys.isEmpty) return;
 
-        for (final k in keys) {
-          final entry = db.entries[k];
-          if (entry == null) continue;
-          final newTags = Set<String>.from(entry.tags)..remove(tag);
-          db.entries[k] = entry.copyWith(tags: newTags) as CacheEntry<Map<String, dynamic>>;
-        }
+    for (final k in keys) {
+      final entry = db.entries[k];
+      if (entry == null) continue;
+      final newTags = Set<String>.from(entry.tags)..remove(tag);
+      db.entries[k] = entry.copyWith(tags: newTags);
+    }
 
-        await _save(db);
-      });
+    await _save(db);
+  });
 
   /// Returns all keys that have the specified tag.
   ///
@@ -179,9 +179,9 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<Set<String>> keysByTag(String tag) => _mutex.synchronized(() async {
-        final db = await _load();
-        return Set<String>.from(db.tagIndex[tag] ?? const {});
-      });
+    final db = await _load();
+    return Set<String>.from(db.tagIndex[tag] ?? const {});
+  });
 
   /// Removes all expired entries from the cache.
   ///
@@ -213,21 +213,21 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<int> purgeExpired(int nowEpochMs) => _mutex.synchronized(() async {
-        final db = await _load();
-        final toRemove = <String>[];
+    final db = await _load();
+    final toRemove = <String>[];
 
-        for (final e in db.entries.entries) {
-          if (e.value.isExpired(nowEpochMs)) toRemove.add(e.key);
-        }
+    for (final e in db.entries.entries) {
+      if (e.value.isExpired(nowEpochMs)) toRemove.add(e.key);
+    }
 
-        for (final key in toRemove) {
-          final entry = db.entries.remove(key);
-          if (entry != null) _removeKeyFromTags(db, key, entry.tags);
-        }
+    for (final key in toRemove) {
+      final entry = db.entries.remove(key);
+      if (entry != null) _removeKeyFromTags(db, key, entry.tags);
+    }
 
-        if (toRemove.isNotEmpty) await _save(db);
-        return toRemove.length;
-      });
+    if (toRemove.isNotEmpty) await _save(db);
+    return toRemove.length;
+  });
 
   /// Reads a single cache entry by key.
   ///
@@ -253,9 +253,9 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<CacheEntry<E>?> read<E>(String key) => _mutex.synchronized(() async {
-        final db = await _load<E>();
-        return db.entries[key];
-      });
+    final db = await _load<E>();
+    return db.entries[key];
+  });
 
   /// Writes or updates a cache entry.
   ///
@@ -279,10 +279,10 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// Serialized through internal mutex - safe to call concurrently.
   @override
   Future<void> write<E>(CacheEntry<E> entry) => _mutex.synchronized(() async {
-        final db = await _load<E>();
-        _upsertEntry(db, entry);
-        await _save(db);
-      });
+    final db = await _load<E>();
+    _upsertEntry(db, entry);
+    await _save(db);
+  });
 
   /// Performs an atomic write to the target file.
   ///
