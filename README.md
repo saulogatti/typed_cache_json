@@ -4,6 +4,8 @@
 
 Um backend de cache baseado em JSON para o pacote `typed_cache`. Oferece uma solução simples, tipada e persistente para armazenamento de dados em um único arquivo JSON, ideal para aplicações Flutter e Dart que precisam de persistência leve.
 
+> **📚 Documentação Completa:** Todo o código está totalmente documentado com comentários DartDoc. Use o autocompletar da sua IDE ou gere a documentação com `dart doc` para explorar a API completa.
+
 ## Características
 
 - **Cache Tipado:** Armazene e recupere objetos com segurança de tipos usando `CacheCodec`.
@@ -14,6 +16,7 @@ Um backend de cache baseado em JSON para o pacote `typed_cache`. Oferece uma sol
 - **Indexação por Tags:** Organize e remova entradas de cache em massa usando tags.
 - **Integração com Flutter:** Resolução fácil de caminhos (`ApplicationSupport`, `Documents`, `Temporary`) via `path_provider`.
 - **Thread-Safe:** Operações protegidas por mutex assíncrono, garantindo segurança em ambientes concorrentes.
+- **Documentação Completa:** API totalmente documentada com exemplos e explicações detalhadas.
 
 ## Começando
 
@@ -252,6 +255,81 @@ final cache = await create(
 );
 ```
 
+## Arquitetura e Funcionamento Interno
+
+### Componentes Principais
+
+O pacote é organizado em componentes especializados:
+
+#### 1. **JsonFileCacheBackend**
+Backend principal que implementa `CacheBackend` do `typed_cache`. Responsável por:
+- Operações de leitura/escrita atômicas
+- Gerenciamento do ciclo de vida das entradas
+- Manutenção do índice de tags
+- Recuperação automática de falhas
+
+#### 2. **AsyncMutex**
+Mutex assíncrono que serializa operações concorrentes. Garante que:
+- Operações de I/O não se sobreponham
+- Estado interno permaneça consistente
+- Erros em uma operação não bloqueiem as seguintes
+
+#### 3. **JsonCacheFile**
+Modelo de dados que representa a estrutura do arquivo JSON em memória:
+- Armazena todas as entradas do cache
+- Mantém índice reverso de tags para buscas eficientes
+- Serializa/deserializa o arquivo JSON
+
+#### 4. **CacheJsonCodec**
+Codec pré-definido para dados JSON simples (`Map<String, dynamic>`):
+- Facilita armazenamento de configurações e dados estruturados
+- Sem necessidade de criar codecs personalizados para dados simples
+
+### Fluxo de Operações
+
+#### Escrita (write)
+```
+TypedCache.put() 
+  → JsonFileCacheBackend.write()
+  → _mutex.synchronized()
+    → _load() (carrega arquivo)
+    → _upsertEntry() (atualiza entrada e índice de tags)
+    → _save()
+      → _atomicWrite() (escreve .tmp → renomeia → backup .bak)
+```
+
+#### Leitura (read)
+```
+TypedCache.get()
+  → JsonFileCacheBackend.read()
+  → _mutex.synchronized()
+    → _load() (carrega e faz cache em memória durante a operação)
+    → retorna entrada ou null
+```
+
+#### Recuperação de Falhas
+```
+_load() falha
+  → _recoverOrEmpty() (se enableRecovery = true)
+    → tenta .bak
+    → tenta .tmp
+    → retorna vazio se todos falharem
+```
+
+### Garantias de Thread-Safety
+
+Todas as operações públicas são protegidas pelo `AsyncMutex`, garantindo:
+- **Serialização:** Operações executam uma de cada vez, na ordem de submissão
+- **Consistência:** Estado do arquivo e índices sempre sincronizados
+- **Isolamento:** Falhas em uma operação não afetam outras
+
+### Garantias de Durabilidade
+
+O protocolo de escrita atômica garante:
+- **Atomicidade:** Escrita completa ou nenhuma escrita (sem corrupção parcial)
+- **Backup Automático:** Versão anterior sempre preservada em `.bak`
+- **Recuperação:** Sistema tenta múltiplos caminhos antes de desistir
+
 ## Informações Adicionais
 
 ### Compatibilidade
@@ -259,6 +337,30 @@ final cache = await create(
 - **Dart SDK**: ^3.10.4
 - **Flutter**: Compatível
 - **Plataformas**: iOS, Android, macOS, Windows, Linux
+
+### Documentação da API
+
+Todo o código deste pacote está completamente documentado com comentários DartDoc. A documentação inclui:
+
+- **Descrições Detalhadas:** Cada classe, método e propriedade possui uma descrição clara
+- **Exemplos de Uso:** Exemplos práticos para as principais funcionalidades
+- **Parâmetros e Retornos:** Documentação completa de todos os parâmetros e valores de retorno
+- **Exceções:** Informações sobre possíveis erros e como tratá-los
+- **Notas de Implementação:** Detalhes sobre o comportamento interno e garantias de thread-safety
+
+#### Como Acessar a Documentação
+
+1. **Via IDE:** Use o autocompletar (Ctrl+Space / Cmd+Space) e hover sobre qualquer símbolo para ver a documentação inline
+2. **Gerar HTML:** Execute `dart doc` no diretório do projeto para gerar documentação HTML navegável
+3. **Leia o Código:** Os comentários DartDoc estão visíveis diretamente nos arquivos fonte
+
+#### Principais Classes Documentadas
+
+- **`JsonFileCacheBackend`:** Backend principal com operações atômicas e recuperação automática
+- **`AsyncMutex`:** Implementação de mutex assíncrono para serialização de operações
+- **`CacheJsonCodec`:** Codec pré-definido para dados JSON simples
+- **`JsonCacheFile`:** Modelo interno do arquivo de cache
+- **`CacheLocation`:** Enum para escolha de localização do arquivo
 
 ### Links Úteis
 
@@ -274,6 +376,113 @@ Para mais detalhes sobre:
 - Otimizações de performance
 
 Consulte a [documentação do typed_cache](https://github.com/saulogatti/typed_cache).
+
+## Melhores Práticas
+
+### Escolha da Localização
+
+- **Use `CacheLocation.support`** para a maioria dos casos - é o local recomendado para cache
+- **Use `CacheLocation.temporary`** apenas para cache verdadeiramente descartável que pode ser limpo pelo SO
+- **Evite `CacheLocation.documents`** para cache - é para arquivos visíveis ao usuário
+
+### Gerenciamento de Tags
+
+```dart
+// Organize entradas relacionadas com tags
+await cache.put('user_123', userData, codec: codec, tags: {'user', 'session'});
+await cache.put('config_123', configData, codec: codec, tags: {'config', 'session'});
+
+// Limpe tudo relacionado à sessão de uma vez
+await cache.invalidateByTag('session');
+```
+
+### Limpeza Periódica
+
+```dart
+// Execute periodicamente para manter o arquivo otimizado
+Future<void> performCacheMaintenance() async {
+  final removed = await cache.purgeExpired();
+  print('Removidas $removed entradas expiradas');
+}
+
+// Exemplo: executar ao iniciar o app
+void main() async {
+  final cache = await create(/*...*/);
+  await performCacheMaintenance();
+  runApp(MyApp());
+}
+```
+
+### Codecs Personalizados
+
+```dart
+// Para objetos complexos, crie codecs específicos
+class UserCodec extends CacheCodec<User, Map<String, dynamic>> {
+  @override
+  String get typeId => 'user:v1'; // Inclua versão no typeId
+  
+  @override
+  User decode(Map<String, dynamic> data) {
+    return User.fromJson(data);
+  }
+  
+  @override
+  Map<String, dynamic> encode(User value) {
+    return value.toJson();
+  }
+}
+```
+
+### Tratamento de Erros
+
+```dart
+try {
+  final data = await cache.get('key', codec: codec);
+  if (data == null) {
+    // Chave não existe ou expirou
+    print('Cache miss');
+  }
+} catch (e) {
+  // Erro de I/O ou corrupção
+  print('Erro ao acessar cache: $e');
+  // O cache tenta se recuperar automaticamente
+}
+```
+
+## Solução de Problemas
+
+### Cache não persiste entre execuções
+
+**Causa:** Possível uso de `CacheLocation.temporary` em dispositivo com pouco espaço.
+**Solução:** Use `CacheLocation.support` para dados que devem persistir.
+
+### Arquivo corrompido repetidamente
+
+**Causa:** Possível falha durante escrita (ex: app terminado abruptamente).
+**Solução:** O sistema de recuperação automática deve resolver. Se persistir:
+```dart
+// Force uma limpeza completa
+await cache.clear();
+```
+
+### Performance lenta com muitas entradas
+
+**Causa:** Arquivo JSON muito grande sendo carregado/gravado a cada operação.
+**Soluções:**
+- Execute `purgeExpired()` periodicamente
+- Use TTL para limitar tempo de vida das entradas
+- Considere dividir em múltiplos arquivos de cache por contexto
+- Use tags para organizar e limpar grupos de entradas
+
+### Erro "Permission Denied"
+
+**Causa:** Tentativa de acessar diretório sem permissões apropriadas.
+**Solução:** Use `CacheLocation.support` que sempre tem permissões adequadas.
+
+### Dados desaparecem no iOS
+
+**Causa:** Uso de `CacheLocation.temporary` - o iOS limpa agressivamente esta pasta.
+**Solução:** Use `CacheLocation.support` para dados que devem persistir.
 
 ## Contribuindo
 
