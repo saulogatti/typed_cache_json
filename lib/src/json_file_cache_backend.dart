@@ -75,13 +75,13 @@ final class JsonFileCacheBackend implements CacheBackend {
 
   @override
   Future<CacheEntry<E>?> read<E>(String key) => _mutex.synchronized(() async {
-    final db = await _load();
-    return db.entries[key] as CacheEntry<E>?;
+    final db = await _load<E>();
+    return db.entries[key];
   });
 
   @override
   Future<void> write<E>(CacheEntry<E> entry) => _mutex.synchronized(() async {
-    final db = await _load();
+    final db = await _load<E>();
     _upsertEntry(db, entry);
     await _save(db);
   });
