@@ -1,6 +1,6 @@
 name: typed_cache_json
 description: A typed cache implementation for Flutter that uses JSON serialization.
-version: 0.2.1
+version: 0.1.0
 repository: https://github.com/saulogatti/typed_cache_json
 
 environment:
