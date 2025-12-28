@@ -256,11 +256,34 @@ final class JsonFileCacheBackend implements CacheBackend {
     final db = await _load<E>();
     return db.entries[key];
   });
+
+  /// Reads all cache entries without checking expiration.
+  ///
+  /// This method returns every [CacheEntry] currently stored in the cache
+  /// file, regardless of whether the entries are expired. It is typically
+  /// used by [TypedCache] for internal management and expiration handling.
+  ///
+  /// ## Type Parameters
+  ///
+  /// - [E] - The payload type stored in each [CacheEntry].
+  ///
+  /// ## Returns
+  ///
+  /// A [List] containing all [CacheEntry] instances stored in the cache.
+  ///
+  /// ## Notes
+  ///
+  /// - Does not check expiration - the caller (TypedCache) handles that.
+  /// - Does not remove expired entries from disk automatically.
+  ///
+  /// ## Thread Safety
+  ///
+  /// Serialized through internal mutex - safe to call concurrently.
   @override
-  Future<List<CacheEntry<E>>> readAll<E>() async {
+  Future<List<CacheEntry<E>>> readAll<E>() => _mutex.synchronized(() async {
     final db = await _load<E>();
     return db.entries.values.toList();
-  }
+  });
 
   /// Writes or updates a cache entry.
   ///
