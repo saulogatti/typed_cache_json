@@ -54,13 +54,13 @@
 
     <section class="multi-line-signature">
         
-<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../typed_cache_json/TypedCache-class.html">TypedCache</a></span>&gt;</span></span>
+<span class="returntype"><a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/TypedCache-class.html">TypedCache</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span>&gt;</span></span>&gt;</span></span>
 <span class="name ">create</span>(<wbr>{<ol class="parameter-list"> <li><span class="parameter" id="create-param-location"><span>required</span> <span class="type-annotation"><a href="../typed_cache_json/CacheLocation.html">CacheLocation</a></span> <span class="parameter-name">location</span>, </span></li>
 <li><span class="parameter" id="create-param-fileName"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">fileName</span>, </span></li>
 <li><span class="parameter" id="create-param-subdir"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">subdir</span>, </span></li>
 <li><span class="parameter" id="create-param-enableRecovery"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">enableRecovery</span> = <span class="default-value">true</span>, </span></li>
 <li><span class="parameter" id="create-param-deleteCorruptedEntries"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">deleteCorruptedEntries</span> = <span class="default-value">true</span>, </span></li>
-<li><span class="parameter" id="create-param-logger"><span class="type-annotation"><a href="../typed_cache_json/CacheLogger.html">CacheLogger</a>?</span> <span class="parameter-name">logger</span>, </span></li>
+<li><span class="parameter" id="create-param-logger"><span class="type-annotation"><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/CacheLogger.html">CacheLogger</a>?</span> <span class="parameter-name">logger</span>, </span></li>
 </ol>})
 
         
@@ -68,7 +68,7 @@
     </section>
     
 <section class="desc markdown">
-  <p>Creates a fully configured <a href="../typed_cache_json/TypedCache-class.html">TypedCache</a> instance with JSON file backend.</p>
+  <p>Creates a fully configured <a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/TypedCache-class.html">TypedCache</a> instance with JSON file backend.</p>
 <p>This is the main entry point for creating a cache in Flutter applications.
 It automatically resolves the storage path based on the <code>location</code> parameter
 and configures the JSON backend with atomic writes and recovery capabilities.</p>
@@ -99,7 +99,7 @@ final cache = await create(
 );
 </code></pre>
 <h2 id="returns">Returns</h2>
-<p>A configured <a href="../typed_cache_json/TypedCache-class.html">TypedCache</a> instance ready to use.</p>
+<p>A configured <a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/TypedCache-class.html">TypedCache</a> instance ready to use.</p>
 <h2 id="throws">Throws</h2>
 <p>May throw <a href="https://api.flutter.dev/flutter/dart-io/FileSystemException-class.html">FileSystemException</a> if unable to create the cache directory.</p>
 </section>
@@ -108,7 +108,7 @@ final cache = await create(
     
 <section class="summary source-code" id="source">
   <h2><span>Implementation</span></h2>
-  <pre class="language-dart"><code class="language-dart">Future&lt;TypedCache&gt; create({
+  <pre class="language-dart"><code class="language-dart">Future&lt;TypedCache&lt;String, Map&lt;String, dynamic&gt;&gt;&gt; create({
   required CacheLocation location,
   required String fileName,
   String? subdir,
@@ -122,7 +122,13 @@ final cache = await create(
     subdir: subdir,
     enableRecovery: enableRecovery,
   );
-  return createTypedCache(backend: backend, deleteCorruptedEntries: deleteCorruptedEntries, log: logger);
+
+  return createTypedCache&lt;String, Map&lt;String, dynamic&gt;&gt;(
+    backend: backend,
+    deleteCorruptedEntries: deleteCorruptedEntries,
+    log: logger,
+    defaultCodec: CacheJsonCodec(),
+  );
 }</code></pre>
 </section>
 
@@ -150,7 +156,7 @@ final cache = await create(
 <footer>
   <span class="no-break">
     typed_cache_json
-      0.2.1
+      0.2.0
   </span>
   
 </footer>

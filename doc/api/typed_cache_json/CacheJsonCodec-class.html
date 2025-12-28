@@ -88,11 +88,31 @@ print(config?['theme']); // 'dark'
 <ul>
 <li>Only supports JSON-serializable types (String, num, bool, List, Map, null)</li>
 <li>Does not preserve type information beyond what JSON supports</li>
-<li>For complex objects, consider creating a custom <code>CacheCodec</code></li>
+<li>For complex objects, consider creating a custom <a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/CacheCodec-class.html">CacheCodec</a></li>
 </ul>
 </section>
 
 
+    <section>
+      <dl class="dl-horizontal">
+        
+
+        
+  <dt>Implemented types</dt>
+  <dd>
+    <ul class="comma-separated clazz-relationships">
+        <li><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/CacheCodec-class.html">CacheCodec</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span>&gt;</span></li>
+    </ul>
+  </dd>
+        
+
+
+        
+        
+
+
+      </dl>
+    </section>
 
     
   <section class="summary offset-anchor" id="constructors">
@@ -144,7 +164,7 @@ print(config?['theme']); // 'dark'
 </dt>
 <dd>
   The type identifier for entries encoded with this codec.
-  <div class="features"><span class="feature">no setter</span></div>
+  <div class="features"><span class="feature">no setter</span><span class="feature">override</span></div>
 
 </dd>
 
@@ -166,7 +186,7 @@ print(config?['theme']); // 'dark'
 </dt>
 <dd>
   Decodes a JSON string back into a Map.
-  
+  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -179,7 +199,7 @@ print(config?['theme']); // 'dark'
 </dt>
 <dd>
   Encodes a Map into a JSON string.
-  
+  <div class="features"><span class="feature">override</span></div>
 
 </dd>
 
@@ -259,7 +279,7 @@ print(config?['theme']); // 'dark'
 <footer>
   <span class="no-break">
     typed_cache_json
-      0.2.1
+      0.2.0
   </span>
   
 </footer>

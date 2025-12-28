@@ -105,11 +105,11 @@ final data = await cache.get('key', codec: codec);
 </dd>
 
           <dt id="TypedCache">
-  <span class="name "><a href="../typed_cache_json/TypedCache-class.html">TypedCache</a></span> 
+  <span class="name "><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/TypedCache-class.html">TypedCache</a><span class="signature">&lt;<wbr><span class="type-parameter">E</span>, <span class="type-parameter">D extends <a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a></span>&gt;</span></span> 
 
 </dt>
 <dd>
-  
+  Type-safe cache interface for storing and retrieving generic data.
 </dd>
 
       </dl>
@@ -138,14 +138,14 @@ final data = await cache.get('key', codec: codec);
       <h2>Functions</h2>
       <dl class="callables">
           <dt id="create" class="callable">
-  <span class="name"><a href="../typed_cache_json/create.html">create</a></span><span class="signature">(<wbr>{<span class="parameter" id="create-param-location"><span>required</span> <span class="type-annotation"><a href="../typed_cache_json/CacheLocation.html">CacheLocation</a></span> <span class="parameter-name">location</span>, </span><span class="parameter" id="create-param-fileName"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">fileName</span>, </span><span class="parameter" id="create-param-subdir"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">subdir</span>, </span><span class="parameter" id="create-param-enableRecovery"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">enableRecovery</span> = <span class="default-value">true</span>, </span><span class="parameter" id="create-param-deleteCorruptedEntries"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">deleteCorruptedEntries</span> = <span class="default-value">true</span>, </span><span class="parameter" id="create-param-logger"><span class="type-annotation"><a href="../typed_cache_json/CacheLogger.html">CacheLogger</a>?</span> <span class="parameter-name">logger</span></span>})
-    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../typed_cache_json/TypedCache-class.html">TypedCache</a></span>&gt;</span></span>
+  <span class="name"><a href="../typed_cache_json/create.html">create</a></span><span class="signature">(<wbr>{<span class="parameter" id="create-param-location"><span>required</span> <span class="type-annotation"><a href="../typed_cache_json/CacheLocation.html">CacheLocation</a></span> <span class="parameter-name">location</span>, </span><span class="parameter" id="create-param-fileName"><span>required</span> <span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">fileName</span>, </span><span class="parameter" id="create-param-subdir"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a>?</span> <span class="parameter-name">subdir</span>, </span><span class="parameter" id="create-param-enableRecovery"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">enableRecovery</span> = <span class="default-value">true</span>, </span><span class="parameter" id="create-param-deleteCorruptedEntries"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/bool-class.html">bool</a></span> <span class="parameter-name">deleteCorruptedEntries</span> = <span class="default-value">true</span>, </span><span class="parameter" id="create-param-logger"><span class="type-annotation"><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/CacheLogger.html">CacheLogger</a>?</span> <span class="parameter-name">logger</span></span>})
+    <span class="returntype parameter">&#8594; <a href="https://api.flutter.dev/flutter/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/TypedCache-class.html">TypedCache</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/Map-class.html">Map</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span>, <span class="type-parameter">dynamic</span>&gt;</span></span>&gt;</span></span>&gt;</span></span>
   </span>
   
 
 </dt>
 <dd>
-  Creates a fully configured <a href="../typed_cache_json/TypedCache-class.html">TypedCache</a> instance with JSON file backend.
+  Creates a fully configured <a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/TypedCache-class.html">TypedCache</a> instance with JSON file backend.
   
 
 </dd>
@@ -158,14 +158,14 @@ final data = await cache.get('key', codec: codec);
       <dl>
           
   <dt id="CacheLogger" class="callable">
-    <span class="name"><a href="../typed_cache_json/CacheLogger.html">CacheLogger</a></span><span class="signature">
+    <span class="name"><a href="https://pub.dev/documentation/typed_cache/0.2.0/typed_cache/CacheLogger.html">CacheLogger</a></span><span class="signature">
       <span class="returntype parameter">= void Function<span class="signature">(<span class="parameter" id="param-message"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/String-class.html">String</a></span> <span class="parameter-name">message</span>, </span><span class="parameter" id="param-error"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/Object-class.html">Object</a>?</span> <span class="parameter-name">error</span>, </span><span class="parameter" id="param-st"><span class="type-annotation"><a href="https://api.flutter.dev/flutter/dart-core/StackTrace-class.html">StackTrace</a>?</span> <span class="parameter-name">st</span></span>)</span></span>
     </span>
     
 
   </dt>
   <dd>
-    
+    Signature for cache logging functions.
     
 
   </dd>
@@ -200,7 +200,7 @@ final data = await cache.get('key', codec: codec);
 <footer>
   <span class="no-break">
     typed_cache_json
-      0.2.1
+      0.2.0
   </span>
   
 </footer>
