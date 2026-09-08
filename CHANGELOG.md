@@ -1,5 +1,9 @@
 ## Changelog
 
+## 0.3.1
+- Updated dependency on typed_cache to version 0.3.1.
+- Added support for Flutter.
+
 ## 0.3.0
 - Updated dependency on typed_cache to version 0.3.0.
 

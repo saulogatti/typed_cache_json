@@ -64,7 +64,7 @@ class CacheJsonCodec implements CacheCodec<String, Map<String, dynamic>> {
   /// - [FormatException] if [data] is not valid JSON
   @override
   Map<String, dynamic> decode(String data) {
-    return jsonDecode(data);
+    return jsonDecode(data) as Map<String, dynamic>;
   }
 
   /// Encodes a Map into a JSON string.

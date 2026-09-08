@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:test/test.dart';
-import 'package:typed_cache/typed_cache.dart';
+import 'package:typed_cache/typed_cache.dart' show CacheEntry;
 import 'package:typed_cache_json/src/async_mutex.dart';
 import 'package:typed_cache_json/src/json_file_cache_backend.dart';
 import 'package:typed_cache_json/src/json_models.dart';
@@ -17,7 +17,11 @@ void main() {
         results.add(value);
       }
 
-      await runConcurrentActions(mutex, [() => action(1, 100), () => action(2, 50), () => action(3, 10)]);
+      await runConcurrentActions(mutex, [
+        () => action(1, 100),
+        () => action(2, 50),
+        () => action(3, 10),
+      ]);
       expect(results, [1, 2, 3]);
     });
 
@@ -759,7 +763,8 @@ Future<void> delayedAction(int value, int delayMs, List<int> results) async {
   results.add(value);
 }
 
-Future<void> executeM(AsyncMutex mutex, Future<void> Function() action) => mutex.synchronized(action);
+Future<void> executeM(AsyncMutex mutex, Future<void> Function() action) =>
+    mutex.synchronized(action);
 
 Future<void> runConcurrentActions(AsyncMutex mutex, List<Future<void> Function()> actions) async {
   await Future.wait(actions.map((action) => executeM(mutex, action)));
