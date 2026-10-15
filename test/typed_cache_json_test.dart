@@ -31,7 +31,7 @@ void main() {
       expect(result, 42);
     });
 
-    test('synchronized propagates errors', () async {
+    test('synchronized propagates errors', () {
       final mutex = AsyncMutex();
       expect(() => mutex.synchronized(() async => throw Exception('test error')), throwsException);
     });
@@ -54,7 +54,7 @@ void main() {
       final results = <int>[];
 
       final future1 = mutex1.synchronized(() async {
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
         results.add(1);
       });
 
@@ -79,7 +79,7 @@ void main() {
       final cache = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key1': CacheEntry(
+          'key1': const CacheEntry(
             key: 'key1',
             typeId: 'test',
             payload: {'data': 'value'},
@@ -130,7 +130,7 @@ void main() {
       final original = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key1': CacheEntry(
+          'key1': const CacheEntry(
             key: 'key1',
             typeId: 'test',
             payload: {'data': 'value'},
@@ -169,13 +169,13 @@ void main() {
     });
 
     test('write and read entry', () async {
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'test_key',
         typeId: 'test_type',
         payload: {'data': 'value'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await backend.write(entry);
@@ -192,13 +192,13 @@ void main() {
     });
 
     test('delete removes entry', () async {
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'test_key',
         typeId: 'test_type',
         payload: {'data': 'value'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await backend.write(entry);
@@ -209,22 +209,22 @@ void main() {
     });
 
     test('clear removes all entries', () async {
-      final entry1 = CacheEntry<Map<String, dynamic>>(
+      const entry1 = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': '1'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
-      final entry2 = CacheEntry<Map<String, dynamic>>(
+      const entry2 = CacheEntry<Map<String, dynamic>>(
         key: 'key2',
         typeId: 'test',
         payload: {'data': '2'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await backend.write(entry1);
@@ -236,7 +236,7 @@ void main() {
     });
 
     test('keysByTag returns tagged keys', () async {
-      final entry1 = CacheEntry<Map<String, dynamic>>(
+      const entry1 = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': '1'},
@@ -245,7 +245,7 @@ void main() {
         tags: {'session', 'auth'},
       );
 
-      final entry2 = CacheEntry<Map<String, dynamic>>(
+      const entry2 = CacheEntry<Map<String, dynamic>>(
         key: 'key2',
         typeId: 'test',
         payload: {'data': '2'},
@@ -265,7 +265,7 @@ void main() {
     });
 
     test('deleteTag removes tag from entries', () async {
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': '1'},
@@ -317,26 +317,26 @@ void main() {
 
     test('atomic write creates backup file', () async {
       // Write initial content
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': 'initial'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await backend.write(entry);
       expect(await cacheFile.exists(), isTrue);
 
       // Write new content - should create backup
-      final entry2 = CacheEntry<Map<String, dynamic>>(
+      const entry2 = CacheEntry<Map<String, dynamic>>(
         key: 'key2',
         typeId: 'test',
         payload: {'data': 'updated'},
         createdAtEpochMs: 2000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await backend.write(entry2);
@@ -347,26 +347,26 @@ void main() {
 
     test('recovery from corrupted file uses backup', () async {
       // Write initial data
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': 'original'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await backend.write(entry);
 
       // Write update to create backup
       await backend.write(
-        CacheEntry<Map<String, dynamic>>(
+        const CacheEntry<Map<String, dynamic>>(
           key: 'key2',
           typeId: 'test',
           payload: {'data': 'update'},
           createdAtEpochMs: 2000,
           expiresAtEpochMs: null,
-          tags: const {},
+          tags: {},
         ),
       );
 
@@ -374,7 +374,7 @@ void main() {
       await cacheFile.writeAsString('invalid json {]');
 
       // Create new backend with recovery enabled
-      final recoveredBackend = JsonFileCacheBackend(file: cacheFile, enableRecovery: true);
+      final recoveredBackend = JsonFileCacheBackend(file: cacheFile);
 
       // Should recover from backup with original data
       final recovered = await recoveredBackend.read<Map<String, dynamic>>('key1');
@@ -388,32 +388,32 @@ void main() {
       await Future.wait([
         () async {
           await backend.write(
-            CacheEntry<Map<String, dynamic>>(
+            const CacheEntry<Map<String, dynamic>>(
               key: 'key1',
               typeId: 'test',
               payload: {'n': 1},
               createdAtEpochMs: 1000,
               expiresAtEpochMs: null,
-              tags: const {},
+              tags: {},
             ),
           );
           results.add('write1');
         }(),
         () async {
           await backend.write(
-            CacheEntry<Map<String, dynamic>>(
+            const CacheEntry<Map<String, dynamic>>(
               key: 'key2',
               typeId: 'test',
               payload: {'n': 2},
               createdAtEpochMs: 1000,
               expiresAtEpochMs: null,
-              tags: const {},
+              tags: {},
             ),
           );
           results.add('write2');
         }(),
         () async {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           await backend.read<Map<String, dynamic>>('key1');
           results.add('read1');
         }(),
@@ -425,7 +425,7 @@ void main() {
     });
 
     test('update entry overwrites previous version', () async {
-      final entry1 = CacheEntry<Map<String, dynamic>>(
+      const entry1 = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': 'v1'},
@@ -436,7 +436,7 @@ void main() {
 
       await backend.write(entry1);
 
-      final entry2 = CacheEntry<Map<String, dynamic>>(
+      const entry2 = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': 'v2'},
@@ -471,7 +471,7 @@ void main() {
     });
 
     test('multiple tags on same entry', () async {
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': '1'},
@@ -512,13 +512,13 @@ void main() {
       final cacheFile = File('${newDir.path}/cache.json');
       final newBackend = JsonFileCacheBackend(file: cacheFile);
 
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': '1'},
         createdAtEpochMs: 1000,
         expiresAtEpochMs: null,
-        tags: const {},
+        tags: {},
       );
 
       await newBackend.write(entry);
@@ -554,7 +554,7 @@ void main() {
     });
 
     test('removing entry also removes it from tag index', () async {
-      final entry = CacheEntry<Map<String, dynamic>>(
+      const entry = CacheEntry<Map<String, dynamic>>(
         key: 'key1',
         typeId: 'test',
         payload: {'data': '1'},
@@ -600,13 +600,13 @@ void main() {
       final cache = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key1': CacheEntry(
+          'key1': const CacheEntry(
             key: 'key1',
             typeId: 'test',
             payload: {'empty': '', 'data': 'value'},
             createdAtEpochMs: 1000,
             expiresAtEpochMs: null,
-            tags: const {},
+            tags: {},
           ),
         },
         tagIndex: {},
@@ -622,7 +622,7 @@ void main() {
       final cache = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key1': CacheEntry(
+          'key1': const CacheEntry(
             key: 'key1',
             typeId: 'test',
             payload: {
@@ -633,14 +633,14 @@ void main() {
             },
             createdAtEpochMs: 1000,
             expiresAtEpochMs: null,
-            tags: const {},
+            tags: {},
           ),
         },
         tagIndex: {},
       );
 
       final json = cache.toJson();
-      final deserialized = JsonCacheFile.fromJson(json);
+      final deserialized = JsonCacheFile.fromJson<Map<String, dynamic>>(json);
 
       expect(deserialized.entries['key1']?.payload['nested'], isNotNull);
     });
@@ -649,20 +649,20 @@ void main() {
       final cache = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key1': CacheEntry(
+          'key1': const CacheEntry(
             key: 'key1',
             typeId: 'test',
             payload: {'int': 42, 'double': 3.14, 'negative': -100, 'zero': 0},
             createdAtEpochMs: 1000,
             expiresAtEpochMs: null,
-            tags: const {},
+            tags: {},
           ),
         },
         tagIndex: {},
       );
 
       final json = cache.toJson();
-      final deserialized = JsonCacheFile.fromJson(json);
+      final deserialized = JsonCacheFile.fromJson<Map<String, dynamic>>(json);
       final payload = deserialized.entries['key1']?.payload;
 
       expect(payload!['int'], 42);
@@ -675,13 +675,13 @@ void main() {
       final cache = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key1': CacheEntry(
+          'key1': const CacheEntry(
             key: 'key1',
             typeId: 'test',
             payload: {'enabled': true, 'disabled': false},
             createdAtEpochMs: 1000,
             expiresAtEpochMs: null,
-            tags: const {},
+            tags: {},
           ),
         },
         tagIndex: {},
@@ -699,7 +699,7 @@ void main() {
       final cache = JsonCacheFile<Map<String, dynamic>>(
         schemaVersion: 1,
         entries: {
-          'key-with-special_chars.123': CacheEntry(
+          'key-with-special_chars.123': const CacheEntry(
             key: 'key-with-special_chars.123',
             typeId: 'test',
             payload: {'unicode': '你好世界', 'emoji': '🎉', 'special': 'test\nwith\ttabs'},
@@ -756,11 +756,6 @@ void main() {
       expect(deserialized.entries['deep_key']?.payload, deeplyNested);
     });
   });
-}
-
-Future<void> delayedAction(int value, int delayMs, List<int> results) async {
-  await Future.delayed(Duration(milliseconds: delayMs));
-  results.add(value);
 }
 
 Future<void> executeM(AsyncMutex mutex, Future<void> Function() action) =>

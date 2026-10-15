@@ -47,7 +47,7 @@ import 'package:typed_cache/typed_cache.dart' show CacheCodec;
 class CacheJsonCodec implements CacheCodec<String, Map<String, dynamic>> {
   /// The type identifier for entries encoded with this codec.
   @override
-  String get typeId => "json:v1";
+  String get typeId => 'json:v1';
 
   /// Decodes a JSON string back into a Map.
   ///

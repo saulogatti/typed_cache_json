@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:typed_cache/typed_cache.dart';
+import 'package:typed_cache_json/src/async_mutex.dart';
+import 'package:typed_cache_json/src/flutter_path.dart';
 import 'package:typed_cache_json/src/json_models.dart';
 import 'package:typed_cache_json/src/json_utils.dart';
-
-import 'async_mutex.dart';
-import 'flutter_path.dart';
 
 /// A [CacheBackend] implementation that stores cache data in a JSON file.
 ///
@@ -18,7 +17,7 @@ import 'flutter_path.dart';
 /// - **Auto-Recovery**: Falls back to backup files if main file is corrupted
 /// - **Thread-Safe**: All operations protected by [AsyncMutex]
 /// - **Tag Indexing**: Maintains reverse index for efficient tag operations
-/// - **Type-Safe**: Generic over payload type [E]
+/// - **Type-Safe**: Generic over payload type [CacheEntry<E>]
 ///
 /// ## File Safety Mechanism
 ///
@@ -403,7 +402,7 @@ final class JsonFileCacheBackend implements CacheBackend {
       return JsonCacheFile.fromJson<E>(Map<String, dynamic>.from(decoded));
     } catch (_) {
       if (!enableRecovery) return JsonCacheFile.empty<E>();
-      return _recoverOrEmpty<E>();
+      return await _recoverOrEmpty<E>();
     }
   }
 

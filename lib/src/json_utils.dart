@@ -1,10 +1,10 @@
 import 'dart:io' show FileSystemException;
 
-import 'package:typed_cache/typed_cache.dart' show TypedCache, createTypedCache, CacheLogger;
+import 'package:typed_cache/typed_cache.dart' show CacheLogger, TypedCache, createTypedCache;
 import 'package:typed_cache_json/src/cache_json_codec.dart';
 import 'package:typed_cache_json/src/json_file_cache_backend.dart';
 
-export 'package:typed_cache/typed_cache.dart' show TypedCache, CacheLogger;
+export 'package:typed_cache/typed_cache.dart' show CacheLogger, TypedCache;
 
 /// Creates a fully configured [TypedCache] instance with JSON file backend.
 ///

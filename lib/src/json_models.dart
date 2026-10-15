@@ -44,8 +44,7 @@ final class JsonCacheFile<E> {
 
   /// Reverse index mapping tags to the set of keys that have that tag.
   ///
-  /// This allows efficient tag-based operations like [keysByTag] and
-  /// [deleteTag] without scanning all entries.
+
   ///
   /// Example: `{'session': {'key1', 'key2'}, 'auth': {'key1'}}`
   final Map<String, Set<String>> tagIndex;
@@ -66,10 +65,10 @@ final class JsonCacheFile<E> {
   /// - `entries`: Map of serialized cache entries
   /// - `tagIndex`: Map of tags to arrays of keys
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'schemaVersion': schemaVersion,
-        'entries': entries.map((k, v) => MapEntry(k, entryToJson<E>(v))),
-        'tagIndex': tagIndex.map((tag, keys) => MapEntry(tag, keys.toList())),
-      };
+    'schemaVersion': schemaVersion,
+    'entries': entries.map((k, v) => MapEntry(k, entryToJson<E>(v))),
+    'tagIndex': tagIndex.map((tag, keys) => MapEntry(tag, keys.toList())),
+  };
 
   /// Creates an empty cache file with no entries.
   ///
@@ -96,13 +95,13 @@ final class JsonCacheFile<E> {
   ///
   /// A [CacheEntry] with the deserialized data.
   static CacheEntry<E> entryFromJson<E>(Map<String, dynamic> json) => CacheEntry<E>(
-        key: json['key'] as String,
-        typeId: json['typeId'] as String,
-        payload: json['payload'] as E,
-        createdAtEpochMs: (json['createdAt'] as num).toInt(),
-        expiresAtEpochMs: (json['expiresAt'] as num?)?.toInt(),
-        tags: ((json['tags'] as List?) ?? const []).map((e) => e as String).toSet(),
-      );
+    key: json['key'] as String,
+    typeId: json['typeId'] as String,
+    payload: json['payload'] as E,
+    createdAtEpochMs: (json['createdAt'] as num).toInt(),
+    expiresAtEpochMs: (json['expiresAt'] as num?)?.toInt(),
+    tags: ((json['tags'] as List?) ?? const []).map((e) => e as String).toSet(),
+  );
 
   /// Serializes a cache entry to JSON.
   ///
@@ -116,13 +115,13 @@ final class JsonCacheFile<E> {
   ///
   /// A map containing all entry fields in JSON-compatible format.
   static Map<String, dynamic> entryToJson<E>(CacheEntry<E> e) => <String, dynamic>{
-        'key': e.key,
-        'typeId': e.typeId,
-        'payload': e.payload,
-        'createdAt': e.createdAtEpochMs,
-        'expiresAt': e.expiresAtEpochMs,
-        'tags': e.tags.toList(growable: true),
-      };
+    'key': e.key,
+    'typeId': e.typeId,
+    'payload': e.payload,
+    'createdAt': e.createdAtEpochMs,
+    'expiresAt': e.expiresAtEpochMs,
+    'tags': e.tags.toList(growable: true),
+  };
 
   /// Deserializes a complete cache file from JSON.
   ///
@@ -157,7 +156,9 @@ final class JsonCacheFile<E> {
     final entriesRaw = (json['entries'] as Map?) ?? const {};
     final entries = <String, CacheEntry<E>>{};
     for (final MapEntry(:key, :value) in entriesRaw.entries) {
-      entries[key as String] = JsonCacheFile.entryFromJson<E>(Map<String, dynamic>.from(value as Map));
+      entries[key as String] = JsonCacheFile.entryFromJson<E>(
+        Map<String, dynamic>.from(value as Map),
+      );
     }
 
     // Deserialize tag index
