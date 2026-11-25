@@ -56,13 +56,14 @@ Future<File> resolveCacheFile({
   CacheLocation location = CacheLocation.support,
   String? subdir,
 }) async {
+  var newFileName = fileName;
   // Ensure the filename has a .json extension
-  if (p.extension(fileName).isEmpty) {
-    fileName = p.setExtension(fileName, '.json');
+  if (p.extension(newFileName).isEmpty) {
+    newFileName = p.setExtension(newFileName, '.json');
   }
 
   // Resolve the base directory based on location
-  final Directory baseDir = switch (location) {
+  final baseDir = switch (location) {
     CacheLocation.support => await getApplicationSupportDirectory(),
     CacheLocation.temporary => await getTemporaryDirectory(),
     CacheLocation.documents => await getApplicationDocumentsDirectory(),
@@ -73,9 +74,11 @@ Future<File> resolveCacheFile({
   final dir = Directory(dirPath);
 
   // Create the directory structure if it doesn't exist
-  if (!await dir.exists()) await dir.create(recursive: true);
+  if (!dir.existsSync()) {
+    await dir.create(recursive: true);
+  }
 
   // Return the full file path
-  final filePath = p.join(dir.path, fileName);
+  final filePath = p.join(dir.path, newFileName);
   return File(filePath);
 }

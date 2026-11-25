@@ -26,6 +26,11 @@ import 'package:typed_cache/typed_cache.dart';
 /// - [E]: The payload type for cache entries. For JSON storage, this is
 ///   typically `Map<String, dynamic>`.
 final class JsonCacheFile<E> {
+  /// Creates a new cache file with the given data.
+  ///
+  /// Typically not called directly - use [empty] or [fromJson] instead.
+  JsonCacheFile({required this.schemaVersion, required this.entries, required this.tagIndex});
+
   /// The current schema version for the JSON file format.
   ///
   /// This version number is stored in the JSON file and can be used for
@@ -44,16 +49,11 @@ final class JsonCacheFile<E> {
 
   /// Reverse index mapping tags to the set of keys that have that tag.
   ///
-  /// This allows efficient tag-based operations like [keysByTag] and
-  /// [deleteTag] without scanning all entries.
+  /// This allows efficient tag-based operations like `keysByTag` and
+  /// `deleteTag` without scanning all entries.
   ///
   /// Example: `{'session': {'key1', 'key2'}, 'auth': {'key1'}}`
   final Map<String, Set<String>> tagIndex;
-
-  /// Creates a new cache file with the given data.
-  ///
-  /// Typically not called directly - use [empty] or [fromJson] instead.
-  JsonCacheFile({required this.schemaVersion, required this.entries, required this.tagIndex});
 
   /// Serializes this cache file to a JSON-compatible map.
   ///
