@@ -2,11 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:typed_cache/typed_cache.dart';
+import 'package:typed_cache_json/src/async_mutex.dart';
+import 'package:typed_cache_json/src/flutter_path.dart';
 import 'package:typed_cache_json/src/json_models.dart';
 import 'package:typed_cache_json/src/json_utils.dart';
-
-import 'async_mutex.dart';
-import 'flutter_path.dart';
 
 /// A [CacheBackend] implementation that stores cache data in a JSON file.
 ///
@@ -18,7 +17,7 @@ import 'flutter_path.dart';
 /// - **Auto-Recovery**: Falls back to backup files if main file is corrupted
 /// - **Thread-Safe**: All operations protected by [AsyncMutex]
 /// - **Tag Indexing**: Maintains reverse index for efficient tag operations
-/// - **Type-Safe**: Generic over payload type [E]
+/// - **Type-Safe**: Generic over payload type [CacheEntry<E>]
 ///
 /// ## File Safety Mechanism
 ///
@@ -59,6 +58,16 @@ import 'flutter_path.dart';
 /// All public methods are serialized through an internal mutex, ensuring
 /// that concurrent operations don't corrupt the file or internal state.
 final class JsonFileCacheBackend implements CacheBackend {
+  /// Creates a backend pointing to the specified [file].
+  ///
+  /// ## Parameters
+  ///
+  /// - [file]: The JSON file for storing cache data
+  /// - [enableRecovery]: Whether to attempt recovery from backup files (default: true)
+  ///
+  /// **Recommendation**: Use [fromLocation] factory instead for Flutter apps.
+  JsonFileCacheBackend({required this.file, this.enableRecovery = true});
+
   /// The cache file location on disk.
   final File file;
 
@@ -69,16 +78,6 @@ final class JsonFileCacheBackend implements CacheBackend {
   ///
   /// When false, a corrupted main file results in an empty cache.
   final bool enableRecovery;
-
-  /// Creates a backend pointing to the specified [file].
-  ///
-  /// ## Parameters
-  ///
-  /// - [file]: The JSON file for storing cache data
-  /// - [enableRecovery]: Whether to attempt recovery from backup files (default: true)
-  ///
-  /// **Recommendation**: Use [fromLocation] factory instead for Flutter apps.
-  JsonFileCacheBackend({required this.file, this.enableRecovery = true});
 
   /// Removes all entries from the cache.
   ///
@@ -149,11 +148,15 @@ final class JsonFileCacheBackend implements CacheBackend {
   Future<void> deleteTag(String tag) => _mutex.synchronized(() async {
     final db = await _load();
     final keys = db.tagIndex.remove(tag);
-    if (keys == null || keys.isEmpty) return;
+    if (keys == null || keys.isEmpty) {
+      return;
+    }
 
     for (final k in keys) {
       final entry = db.entries[k];
-      if (entry == null) continue;
+      if (entry == null) {
+        continue;
+      }
       final newTags = Set<String>.from(entry.tags)..remove(tag);
       db.entries[k] = entry.copyWith(tags: newTags);
     }
@@ -217,15 +220,21 @@ final class JsonFileCacheBackend implements CacheBackend {
     final toRemove = <String>[];
 
     for (final e in db.entries.entries) {
-      if (e.value.isExpired(nowEpochMs)) toRemove.add(e.key);
+      if (e.value.isExpired(nowEpochMs)) {
+        toRemove.add(e.key);
+      }
     }
 
     for (final key in toRemove) {
       final entry = db.entries.remove(key);
-      if (entry != null) _removeKeyFromTags(db, key, entry.tags);
+      if (entry != null) {
+        _removeKeyFromTags(db, key, entry.tags);
+      }
     }
 
-    if (toRemove.isNotEmpty) await _save(db);
+    if (toRemove.isNotEmpty) {
+      await _save(db);
+    }
     return toRemove.length;
   });
 
@@ -335,7 +344,9 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// May throw [FileSystemException] if unable to write or rename files.
   Future<void> _atomicWrite(File target, String content) async {
     final dir = target.parent;
-    if (!await dir.exists()) await dir.create(recursive: true);
+    if (!dir.existsSync()) {
+      await dir.create(recursive: true);
+    }
 
     final tmp = File('${target.path}.tmp');
     final bak = File('${target.path}.bak');
@@ -350,7 +361,7 @@ final class JsonFileCacheBackend implements CacheBackend {
     }
 
     // Backup current file if it exists
-    if (await target.exists()) {
+    if (target.existsSync()) {
       try {
         await target.copy(bak.path);
       } catch (_) {
@@ -363,7 +374,9 @@ final class JsonFileCacheBackend implements CacheBackend {
       await tmp.rename(target.path);
     } catch (_) {
       try {
-        if (await target.exists()) await target.delete();
+        if (target.existsSync()) {
+          await target.delete();
+        }
       } catch (_) {}
       await tmp.rename(target.path);
     }
@@ -392,17 +405,25 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// calls [_recoverOrEmpty] to attempt loading from backup files.
   Future<JsonCacheFile<E>> _load<E>() async {
     try {
-      if (!await file.exists()) return JsonCacheFile.empty<E>();
+      if (!file.existsSync()) {
+        return JsonCacheFile.empty<E>();
+      }
 
       final text = await file.readAsString();
-      if (text.trim().isEmpty) return JsonCacheFile.empty<E>();
+      if (text.trim().isEmpty) {
+        return JsonCacheFile.empty<E>();
+      }
 
       final decoded = jsonDecode(text);
-      if (decoded is! Map) return JsonCacheFile.empty<E>();
+      if (decoded is! Map) {
+        return JsonCacheFile.empty<E>();
+      }
 
       return JsonCacheFile.fromJson<E>(Map<String, dynamic>.from(decoded));
     } catch (_) {
-      if (!enableRecovery) return JsonCacheFile.empty<E>();
+      if (!enableRecovery) {
+        return JsonCacheFile.empty<E>();
+      }
       return _recoverOrEmpty<E>();
     }
   }
@@ -431,7 +452,9 @@ final class JsonFileCacheBackend implements CacheBackend {
 
     for (final candidate in [bak, tmp]) {
       try {
-        if (!await candidate.exists()) continue;
+        if (!candidate.existsSync()) {
+          continue;
+        }
         final text = await candidate.readAsString();
         final decoded = jsonDecode(text);
         if (decoded is Map) {
@@ -465,9 +488,13 @@ final class JsonFileCacheBackend implements CacheBackend {
   void _removeKeyFromTags<E>(JsonCacheFile<E> db, String key, Set<String> tags) {
     for (final tag in tags) {
       final set = db.tagIndex[tag];
-      if (set == null) continue;
+      if (set == null) {
+        continue;
+      }
       set.remove(key);
-      if (set.isEmpty) db.tagIndex.remove(tag);
+      if (set.isEmpty) {
+        db.tagIndex.remove(tag);
+      }
     }
   }
 
@@ -503,7 +530,9 @@ final class JsonFileCacheBackend implements CacheBackend {
   /// - Adds the entry's key to the tag's set
   void _upsertEntry(JsonCacheFile db, CacheEntry entry) {
     final previous = db.entries[entry.key];
-    if (previous != null) _removeKeyFromTags(db, entry.key, previous.tags);
+    if (previous != null) {
+      _removeKeyFromTags(db, entry.key, previous.tags);
+    }
 
     db.entries[entry.key] = entry;
 
